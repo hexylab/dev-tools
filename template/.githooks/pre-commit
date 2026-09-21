@@ -1,0 +1,14 @@
+#!/bin/sh
+# ステージ済みの変更にシークレット・個人情報がないか検査する
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks が見つかりません: brew install gitleaks" >&2
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner || exit 1
+
+# ai/agents/ を直したのに Codex 用の定義を作り直していないコミットを止める
+node ai/gen-codex-agents.mjs || exit 1
+if ! git diff --quiet -- .codex/agents || [ -n "$(git ls-files --others --exclude-standard .codex/agents)" ]; then
+  echo ".codex/agents を ai/agents/ から作り直しました。git add .codex/agents してからコミットし直してください。" >&2
+  exit 1
+fi

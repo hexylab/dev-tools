@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue #{{Issue 番号}} {{Issue の題名}} — PR レビュー報告</title>
+<style>
+  /* ===== Hexyl Design のトークン（../basic-design-system/DESIGN.md version alpha）=====
+     値はここだけに書く。本文の CSS は必ず var() で読む。色を直接書かない。 */
+  :root {
+    --background: #faf6f0;
+    --surface: #ffffff;
+    --surface-dim: #f3ece2;
+    --outline: #ece3d6;
+    --on-surface: #14100a;
+    --on-surface-dim: #857662;
+    --primary: #f08c26;
+    --primary-strong: #e0790f;
+    --on-primary: #ffffff;
+    --primary-deep: #b9620e;
+    --primary-deep-outline: #ba650f;
+    --primary-container: #fff5e8;
+    --on-primary-container: #934900;
+    --eyebrow: #916029;
+    --muted: #70614f;
+    --error: #d9544f;
+    --error-text: #b93733;
+    --error-container: #fdf0ef;
+    --warning-container: #fff3cd;
+    --on-warning-container: #594500;
+    --success: #2fae6e;
+    --success-text: #1c7f4e;
+    --option-outline: #ded4c6;
+    --dialog-subtitle: #6c5c49;
+    --step-badge: #995515;
+    --step-badge-container: #fff0dc;
+    --tip-container: #f7f2e9;
+    --on-tip-container: #624b2f;
+
+    /* 地の点模様: primary を 10% で置く（DESIGN.md「22px グリッド、10% の点」） */
+    --dot: rgba(240, 140, 38, 0.10);
+
+    --font: system-ui, Inter, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --rounded-md: 12px;
+    --rounded-lg: 18px;
+    --rounded-xl: 22px;
+    --rounded-full: 999px;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --gutter: 16px;
+    --margin: 24px;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--on-surface);
+    background-color: var(--background);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 3px solid var(--primary-deep); outline-offset: 3px; }
+  a { color: var(--on-primary-container); }
+
+  /* ===== 骨組み: ページ > 章 > カード > 折りたたみ =====
+     章の見出しは地の上に置き、枠（カード）は章の中身だけに使う。枠の入れ子は「カード > 折りたたみ」の 1 段まで。 */
+  .page { max-width: 960px; margin: 0 auto; padding: var(--margin); }
+  .chapter { margin-top: 48px; display: flex; flex-direction: column; gap: var(--space-md); scroll-margin-top: var(--space-lg); }
+  .chapter-head {
+    display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;
+    padding-bottom: var(--space-sm); border-bottom: 2px solid var(--option-outline);
+  }
+  .chapter-no {
+    flex: 0 0 32px; width: 32px; height: 32px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--primary-deep); color: var(--on-primary);
+    font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .chapter-note { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .chapter-lead { font-size: 14px; color: var(--muted); margin: 0; }
+
+  .card { background: var(--surface); border: 1px solid var(--outline); border-radius: var(--rounded-lg); padding: var(--space-lg) var(--space-xl); }
+  .card.open { border-color: var(--error); }
+  .card > * + * { margin-top: var(--space-md); }
+  .card-head { display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap; }
+  .card-head h3 { flex: 1 1 260px; min-width: 0; }
+  .card-no {
+    flex: 0 0 auto; padding: 2px 10px; border-radius: var(--rounded-full);
+    background: var(--step-badge-container); color: var(--step-badge);
+    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+
+  /* ===== 字の段階 ===== */
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--eyebrow); margin: 0 0 var(--space-xs); }
+  h1 { font-size: 30px; font-weight: 700; line-height: 1.4; margin: 0; }
+  h2 { font-size: 22px; font-weight: 700; line-height: 1.5; margin: 0; }
+  h3 { font-size: 16px; font-weight: 700; line-height: 1.6; margin: 0; }
+  h4 { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 var(--space-xs); }
+  .subtitle { font-size: 14px; color: var(--dialog-subtitle); margin: var(--space-sm) 0 0; }
+  .body-sm { font-size: 14px; }
+  .caption { font-size: 12px; line-height: 1.65; color: var(--on-surface-dim); }
+  .lead { font-size: 20px; line-height: 1.7; margin: 0; overflow-wrap: anywhere; }
+  p { margin: 0; }
+  ul, ol { margin: 0; padding-left: 1.3em; }
+  li + li { margin-top: var(--space-xs); }
+
+  /* ===== ヘッダと目次 ===== */
+  .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md) var(--gutter); margin: 0; padding-top: var(--space-md); border-top: 1px solid var(--outline); }
+  .meta dt { font-size: 12px; color: var(--muted); }
+  .meta dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  .toc { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-md); padding: 0; list-style: none; font-size: 13px; }
+  .toc li { margin: 0; }
+  .toc a { display: inline-block; padding: var(--space-xs) var(--space-md); border: 1px solid var(--outline); border-radius: var(--rounded-full); background: var(--surface); text-decoration: none; }
+
+  /* ===== ピル・判定 ===== */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px var(--space-md);
+    border: 1px solid var(--outline); border-radius: var(--rounded-full);
+    background: var(--surface); color: var(--on-surface-dim);
+    font-size: 13px; font-weight: 600; line-height: 1.6; white-space: nowrap;
+  }
+  .pill-pass { color: var(--success-text); border-color: var(--success); }
+  .pill-fail { color: var(--error-text); border-color: var(--error); }
+  .pill-accent { color: var(--on-primary-container); background: var(--primary-container); border-color: var(--primary-deep-outline); }
+  .verdict {
+    display: inline-flex; align-items: center; gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-xl); border-radius: var(--rounded-full);
+    border: 2px solid var(--primary-deep-outline); background: var(--primary-container);
+    color: var(--on-primary-container); font-size: 16px; font-weight: 700;
+  }
+  .verdict-ok { border-color: var(--success); background: var(--surface); color: var(--success-text); }
+  .verdict-open { border-color: var(--error); background: var(--error-container); color: var(--error-text); }
+
+  /* ===== 数値タイル ===== */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); }
+  .kpi { background: var(--surface); border: 1px solid var(--outline); border-radius: var(--rounded-lg); padding: var(--space-md) var(--space-lg); }
+  .kpi .label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .kpi .value { font-size: 26px; font-weight: 700; line-height: 1.3; margin: var(--space-xs) 0; font-variant-numeric: tabular-nums; }
+  .kpi .note { font-size: 12px; color: var(--on-surface-dim); }
+
+  /* ===== 表 ===== */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--outline); vertical-align: top; }
+  th { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td.id { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+
+  /* ===== コード ===== */
+  code { font-family: var(--mono); font-size: 0.92em; }
+  .path { font-family: var(--mono); font-size: 13px; color: var(--on-primary-container); overflow-wrap: anywhere; }
+  pre.code {
+    margin: 0; padding: var(--space-md) var(--space-lg);
+    background: var(--surface-dim); border-radius: var(--rounded-md);
+    font-family: var(--mono); font-size: 13px; line-height: 1.6;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  pre.code mark { background: var(--error-container); color: var(--error-text); }
+
+  /* ===== 折りたたみと差分（scripts/diff-html.mjs の出力） ===== */
+  .fold { border: 1px solid var(--outline); border-radius: var(--rounded-md); background: var(--surface); overflow: hidden; }
+  .fold + .fold { margin-top: var(--space-sm); }
+  .fold > summary {
+    display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap;
+    padding: var(--space-sm) var(--space-md); cursor: pointer; list-style: none; font-size: 13px;
+  }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::before { content: "▸"; color: var(--muted); }
+  .fold[open] > summary::before { content: "▾"; }
+  .fold[open] > summary { border-bottom: 1px solid var(--outline); }
+  .tag { padding: 0 var(--space-sm); border-radius: var(--space-xs); background: var(--surface-dim); color: var(--muted); font-size: 12px; font-weight: 700; }
+  .tag-note { background: var(--primary-container); color: var(--on-primary-container); }
+  .diffstat { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .diff-lines { background: var(--surface-dim); font-family: var(--mono); font-size: 12.5px; line-height: 1.65; padding: var(--space-xs) 0; }
+  .ln { display: grid; grid-template-columns: 5ch minmax(0, 1fr); border-left: 3px solid transparent; }
+  .ln .no { text-align: right; padding-right: 1ch; color: var(--on-surface-dim); user-select: none; }
+  .ln .code { white-space: pre-wrap; overflow-wrap: anywhere; padding-right: var(--space-md); }
+  .ln.add { background: var(--surface); border-left-color: var(--success); color: var(--success-text); }
+  .ln.del { background: var(--error-container); border-left-color: var(--error); color: var(--error-text); }
+  .ln.hunk { color: var(--muted); padding: var(--space-xs) 0; }
+  .ln.note {
+    background: var(--primary-container); border-left-color: var(--primary-deep-outline); color: var(--on-primary-container);
+    font-family: var(--font); font-size: 13px; text-decoration: none; padding: var(--space-xs) 0;
+  }
+  .ln.note .no { color: var(--on-primary-container); }
+
+  /* ===== 図（インライン SVG） ===== */
+  .diagram-wrap { overflow-x: auto; }
+  .diagram { display: block; width: 100%; height: auto; font-family: var(--font); }
+  .dg-box { fill: var(--surface); stroke: var(--outline); stroke-width: 1.5; }
+  .dg-box-changed { fill: var(--primary-container); stroke: var(--primary-deep-outline); stroke-width: 2; }
+  .dg-title { fill: var(--on-surface); font-size: 14px; font-weight: 700; }
+  .dg-sub { fill: var(--muted); font-size: 11.5px; }
+  .dg-arrow { fill: none; stroke: var(--on-surface-dim); stroke-width: 1.5; }
+  .dg-head { fill: var(--on-surface-dim); }
+  .dg-arrow-label { fill: var(--muted); font-size: 11px; }
+  .dg-group { fill: none; stroke: var(--option-outline); stroke-width: 1.5; stroke-dasharray: 5 5; }
+  .dg-group-label { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .dg-new-box { fill: var(--step-badge-container); stroke: var(--step-badge); stroke-width: 1; }
+  .dg-new-text { fill: var(--step-badge); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
+  .legend { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-lg); font-size: 13px; color: var(--muted); }
+  .legend li { display: flex; align-items: center; gap: var(--space-sm); margin: 0; }
+  .legend .sw { width: 22px; height: 14px; border-radius: var(--space-xs); background: var(--surface); border: 1.5px solid var(--outline); }
+  .legend .sw.changed { background: var(--primary-container); border: 2px solid var(--primary-deep-outline); }
+  .legend .badge { padding: 1px 6px; border-radius: var(--space-xs); background: var(--step-badge-container); color: var(--step-badge); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
+
+  /* ===== 画面の見た目（モックアップと実装を同じ大きさで並べる） ===== */
+  .shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
+  .shot { min-width: 0; }
+  .shot .frame {
+    height: 260px; display: grid; place-items: center; padding: var(--space-sm);
+    background: var(--surface-dim); border: 1px solid var(--outline); border-radius: var(--rounded-md); overflow: hidden;
+  }
+  .shot .frame img { max-width: 100%; max-height: 100%; }
+
+  /* ===== 補足・手順 ===== */
+  .tip { background: var(--tip-container); color: var(--on-tip-container); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .empty-note { color: var(--muted); font-size: 14px; }
+  .steps { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  .steps > li { display: flex; gap: var(--space-md); align-items: flex-start; margin: 0; }
+  .step-no {
+    flex: 0 0 28px; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--step-badge-container); color: var(--step-badge); font-size: 13px; font-weight: 700;
+  }
+  .steps .txt { min-width: 0; flex: 1 1 auto; }
+  .steps .txt > * + * { margin-top: var(--space-xs); }
+  .steps .why { font-size: 13px; color: var(--muted); }
+
+  .footer { margin-top: 48px; display: flex; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .shots { grid-template-columns: 1fr; }
+    /* 図の字が小さくなりすぎないよう、狭い画面では図だけ横スクロールさせる */
+    .diagram { min-width: 560px; }
+  }
+  @media (max-width: 600px) {
+    .page { padding: 12px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 19px; }
+    .lead { font-size: 17px; }
+    .card { padding: var(--space-md) var(--space-lg); }
+    .chapter-note { margin-left: 0; flex-basis: 100%; }
+  }
+  @media print {
+    body { background-image: none; background-color: var(--surface); }
+    .page { max-width: none; padding: 0; }
+    .card, .kpi { break-inside: avoid; }
+    .toc { display: none; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+<!-- T: 使い方
+     1. このファイルを docs/plans/issue<N>/report.html に複製する。
+     2. {{…}} を実際の内容に置き換える。「T: 繰り返す」の塊は件数分だけ複製し、「T: 任意」の塊は使わなければ塊ごと消す。
+     3. DIFF の印（コメント）は scripts/diff-html.mjs で差分に置き換える。
+     4. 「T:」で始まるコメントをすべて消す。
+     章の順序・id・CSS は変えない。書き方は references/report-guide.md にある。
+     確認: grep -nE '\{\{|<!-- (T|DIFF):' report.html が何も返さないこと。 -->
+
+  <header class="card">
+    <p class="eyebrow">PR レビュー報告</p>
+    <h1>{{Issue の題名}}</h1>
+    <p class="subtitle">Issue #{{Issue 番号}} を閉じる PR #{{PR 番号}} について、レビューで見つかった問題と直した内容をまとめた報告です。</p>
+    <dl class="meta">
+      <div><dt>Issue / PR</dt><dd>#{{Issue 番号}} / #{{PR 番号}}</dd></div>
+      <div><dt>ブランチ</dt><dd>{{ブランチ名}}</dd></div>
+      <div><dt>対象コミット</dt><dd>{{HEAD の短い SHA}}</dd></div>
+      <div><dt>比較元</dt><dd>{{base ブランチ名}}（{{merge-base の短い SHA}}）</dd></div>
+      <div><dt>レビューの周回数</dt><dd>{{n}} 周（上限 3 周）</dd></div>
+      <div><dt>生成日時</dt><dd>{{YYYY-MM-DD HH:MM JST}}</dd></div>
+    </dl>
+    <ul class="toc">
+      <li><a href="#summary">結論</a></li>
+      <li><a href="#ticket">1 チケット</a></li>
+      <li><a href="#where">2 変えた場所</a></li>
+      <li><a href="#changes">3 変更と差分</a></li>
+      <li><a href="#acceptance">4 受け入れ条件</a></li>
+      <li><a href="#findings">5 指摘と修正</a></li>
+      <li><a href="#remaining">6 残っていること</a></li>
+    </ul>
+  </header>
+
+  <!-- ============ 結論 ============ -->
+  <section id="summary" class="chapter">
+    <div class="chapter-head"><h2>結論</h2></div>
+
+    <div class="card">
+      <!-- T: 判定は次の 3 つから 1 つだけ残す
+           <span class="verdict verdict-ok">✅ マージ可</span>
+           <span class="verdict">⏳ ユーザの作業待ち</span>
+           <span class="verdict verdict-open">⚠️ 未解決あり</span> -->
+      <div>{{判定}}</div>
+      <p class="lead">{{結論。合否 → 残っているもの → 何をすればマージできるか、を 1〜2 文で}}</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">受け入れ条件</div><div class="value">{{合格数}} / {{全件数}}</div><div class="note">{{内訳。例: 未検証 1 件（A5）}}</div></div>
+      <div class="kpi"><div class="label">指摘</div><div class="value">{{n}} 件</div><div class="note">{{内訳。例: 重大 1 / 中 1}}</div></div>
+      <div class="kpi"><div class="label">修正済み</div><div class="value">{{n}} 件</div><div class="note">{{例: 修正コミット 1 件}}</div></div>
+      <div class="kpi"><div class="label">未解決</div><div class="value">{{n}} 件</div><div class="note">{{例: 判断が必要}}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>あなたに残る作業</h3><span class="pill">{{n}} 件</span></div>
+      <!-- T: 作業が無ければ <ol> を消してこの 1 行にする
+           <p class="empty-note">なし。このままマージできます。</p> -->
+      <ol class="steps">
+        <!-- T: 繰り返す（作業 1 件分） -->
+        <li>
+          <span class="step-no">{{連番}}</span>
+          <div class="txt">
+            <strong>{{何をするか。命令形で}}</strong>
+            <p class="why">{{なぜ必要か。1 文}}</p>
+            <!-- T: 任意（実行するコマンドがあるとき） -->
+            <pre class="code">{{そのまま貼って動くコマンド}}</pre>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ 1. このチケットは何か ============ -->
+  <section id="ticket" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">1</span><h2>このチケットは何か</h2>
+      <span class="chapter-note">出典: Issue #{{Issue 番号}}</span>
+    </div>
+    <div class="card">
+      <div><h4>困っていたこと</h4><p>{{誰が、何をしようとして、どう困るのか}}</p></div>
+      <div><h4>どうなれば解決か</h4><p>{{Goal を 1 文で}}</p></div>
+      <div class="tip">💡 決めたこと: {{以降の章を読むのに必要な実装方針。上限値、対象範囲など}}</div>
+    </div>
+  </section>
+
+  <!-- ============ 2. 全体の中でどこを変えたか ============ -->
+  <section id="where" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">2</span><h2>全体の中でどこを変えたか</h2>
+    </div>
+    <div class="card">
+      <!-- T: 図の部品の見本。箱・矢印を複製し、座標と文字を書き換えて描く。
+           文書や設定だけの変更なら、図と凡例を消して文章だけにする。 -->
+      <div class="diagram-wrap">
+      <svg class="diagram" viewBox="0 0 740 220" role="img" aria-label="{{図が示す内容を 1〜2 文で}}">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="dg-head" d="M0,0 L10,5 L0,10 z"/>
+          </marker>
+        </defs>
+
+        <!-- T: 点線の囲み（このリポジトリの範囲） -->
+        <rect class="dg-group" x="228" y="30" width="496" height="180" rx="14"/>
+        <text class="dg-group-label" x="240" y="22">HEXYLDOCK PLATFORM（このリポジトリ）</text>
+
+        <!-- T: 箱（変更なし） -->
+        <g>
+          <rect class="dg-box" x="8" y="84" width="152" height="72" rx="12"/>
+          <text class="dg-title" x="24" y="115">{{部品の名前}}</text>
+          <text class="dg-sub" x="24" y="135">{{役割}}</text>
+        </g>
+
+        <!-- T: 箱（変更した） -->
+        <g>
+          <rect class="dg-box-changed" x="244" y="84" width="180" height="72" rx="12"/>
+          <text class="dg-title" x="262" y="115">{{部品の名前}}</text>
+          <text class="dg-sub" x="262" y="135">{{何を変えたか}}</text>
+        </g>
+
+        <!-- T: 箱（新規。NEW の印つき） -->
+        <g>
+          <rect class="dg-box-changed" x="512" y="88" width="204" height="64" rx="12"/>
+          <text class="dg-title" x="530" y="116">{{部品の名前}}</text>
+          <text class="dg-sub" x="530" y="136">{{役割}}</text>
+          <rect class="dg-new-box" x="656" y="78" width="44" height="20" rx="10"/>
+          <text class="dg-new-text" x="664" y="92">NEW</text>
+        </g>
+
+        <!-- T: 矢印（ラベルは箱に重ねず、矢印の上に置く） -->
+        <path class="dg-arrow" d="M160,120 H238" marker-end="url(#ah)"/>
+        <text class="dg-arrow-label" x="199" y="111" text-anchor="middle">{{流れるもの}}</text>
+        <path class="dg-arrow" d="M424,120 H506" marker-end="url(#ah)"/>
+        <text class="dg-arrow-label" x="465" y="111" text-anchor="middle">{{流れるもの}}</text>
+      </svg>
+      </div>
+      <ul class="legend">
+        <li><span class="sw"></span>変更なし</li>
+        <li><span class="sw changed"></span>変更した部分</li>
+        <li><span class="badge">NEW</span>新しく追加した部分</li>
+      </ul>
+      <p class="body-sm">{{何を変えたか、何を変えていないか。2〜3 文}}</p>
+    </div>
+  </section>
+
+  <!-- ============ 3. 変更の内容と差分 ============ -->
+  <section id="changes" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">3</span><h2>変更の内容と差分</h2>
+      <span class="chapter-note">{{n}} 件のまとまり / {{n}} ファイル</span>
+    </div>
+    <p class="chapter-lead">変更を意味のまとまりごとに示します。ファイル名を押すと差分が開き、指摘のある行の下には「▲ F1」のような印が付いています（押すと第 5 章の該当する指摘へ移ります）。</p>
+
+    <!-- T: 繰り返す（変更のまとまり 1 件分。id は c1, c2…） -->
+    <article id="c{{連番}}" class="card">
+      <div class="card-head">
+        <span class="card-no">変更 {{連番}}</span><h3>{{何をしたか。動きのある一文}}</h3>
+        <span class="caption">{{backend / frontend / docs など}}</span>
+      </div>
+      <p class="body-sm"><strong>なぜ:</strong> {{他の選び方ではなく、これにした理由。1〜2 文}}</p>
+      <!-- T: 任意（画面の変更があるとき。左右は同じ幅・同じ高さで撮る） -->
+      <div class="shots">
+        <div class="shot"><h4>承認時のモックアップ</h4><div class="frame"><img src="{{data URI}}" alt="{{この画像から分かること}}"></div></div>
+        <div class="shot"><h4>実装した画面</h4><div class="frame"><img src="{{data URI}}" alt="{{この画像から分かること}}"></div></div>
+      </div>
+      <div>
+        <h4>差分（{{n}} ファイル。比較元から対象コミットまで）</h4>
+        <!-- DIFF:changes-{{連番}} -->
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 4. 受け入れ条件と検証結果 ============ -->
+  <section id="acceptance" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">4</span><h2>受け入れ条件と検証結果</h2>
+      <span class="chapter-note">合格 {{合格数}} / {{全件数}}</span>
+    </div>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>条件</th><th>確認方法</th><th>結果</th><th>証跡</th></tr></thead>
+        <tbody>
+          <!-- T: 繰り返す（Acceptance Criteria 1 行につき 1 件）。結果は次の 3 つから 1 つ
+               <span class="pill pill-pass">合格</span> / <span class="pill pill-fail">不合格</span> / <span class="pill">未検証</span> -->
+          <tr>
+            <td class="id">A{{連番}}</td>
+            <td>{{Issue の条件をそのまま転記}}</td>
+            <td>{{コマンド・テスト名・手順}}</td>
+            <td>{{結果}}</td>
+            <td class="body-sm">{{validation.md の該当箇所への相対リンクと、裏づける事実を一言。未検証なら理由}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 5. 指摘と修正 ============ -->
+  <section id="findings" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">5</span><h2>指摘と修正</h2>
+      <span class="chapter-note">{{n}} 件 / 修正済み {{n}}・未解決 {{n}}</span>
+    </div>
+    <p class="chapter-lead">レビュー {{n}} 周で採用した指摘です。確信が持てなかったものと、好みの問題は載せていません。</p>
+
+    <!-- T: 指摘が 0 件なら、下のカードを消してこの 1 枚にする
+    <div class="card"><p class="empty-note">⭕️ 採用した指摘はありません。{{n}} 周のレビューで、バグ・手順違反・受け入れ条件との不一致は見つかりませんでした。</p></div> -->
+
+    <!-- T: 繰り返す（指摘 1 件分。id は f1, f2…。未解決なら class="card open" にする） -->
+    <article id="f{{連番}}" class="card">
+      <div class="card-head">
+        <span class="card-no">F{{連番}}</span><h3>{{何が起きるか。現象を一文で}}</h3>
+        <!-- T: 重大度は <span class="pill pill-fail">重大</span> / <span class="pill pill-accent">中</span> / <span class="pill">軽微</span>
+             状態は   <span class="pill pill-pass">修正済み</span> / <span class="pill pill-fail">未解決</span> / <span class="pill">不採用</span> -->
+        {{重大度}} {{状態}}
+      </div>
+      <p class="body-sm">対象: <a href="#c{{変更の連番}}">変更 {{変更の連番}}</a> / <span class="path">{{ファイルパス:行}}</span></p>
+      <p class="body-sm"><strong>何が問題か:</strong> {{現象 → 影響 → なぜ検出できていなかったか}}</p>
+      <div>
+        <h4>指摘した時点のコード</h4>
+        <!-- T: 問題の行を <mark> で囲む。10 行以内 -->
+        <pre class="code">{{該当箇所の抜粋}}</pre>
+      </div>
+      <!-- T: 任意（修正済みのとき） -->
+      <div>
+        <h4>修正の差分（コミット {{短い SHA}}: {{コミットメッセージ}}）</h4>
+        <!-- DIFF:fix-f{{連番}} -->
+        <p class="caption">{{回帰テストを足したなら、何を確かめるテストか}}</p>
+      </div>
+      <!-- T: 任意（未解決・不採用のとき） -->
+      <p class="body-sm"><strong>直さなかった理由:</strong> {{判断が必要 / Acceptance Criteria の変更が必要 / 3 周で収束しなかった、のどれかと説明}}</p>
+      <div class="tip">💡 判断の材料: {{選択肢と、それぞれを選んだときに変わること}}</div>
+    </article>
+  </section>
+
+  <!-- ============ 6. 残っていること ============ -->
+  <section id="remaining" class="chapter">
+    <div class="chapter-head">
+      <span class="chapter-no">6</span><h2>残っていること</h2>
+      <span class="chapter-note">{{n}} 件</span>
+    </div>
+    <!-- T: 3 つの区分は消さない。該当が無ければ <li>なし</li> -->
+    <div class="card">
+      <div><h4>未解決の指摘</h4><ul class="body-sm"><li>{{F 番号: 1 行で}}</li></ul></div>
+      <div><h4>未検証の項目</h4><ul class="body-sm"><li>{{A 番号: 1 行で}}</li></ul></div>
+      <div><h4>後続の Issue にすること</h4><ul class="body-sm"><li>{{1 行で}}</li></ul></div>
+    </div>
+  </section>
+
+  <footer class="footer caption">
+    <span>Hexyl Design · version alpha</span>
+    <span>review-pr スキルが生成 · 対象コミット {{HEAD の短い SHA}}</span>
+  </footer>
+</main>
+</body>
+</html>

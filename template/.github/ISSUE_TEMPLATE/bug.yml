@@ -1,0 +1,49 @@
+name: バグ報告
+description: 期待と異なる動作の報告
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: 何が起きたか。エラーメッセージやログがあれば貼る
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: 期待する動作
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected Users and Systems
+      description: 影響を受ける利用者、サービス、環境
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: 修正時に守るべき条件、対象外とするもの
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: 修正を検証できる条件
+      value: "- [ ] 再現テストが修正前に失敗し、修正後に成功する"
+    validations:
+      required: true
+  - type: textarea
+    id: blocked_by
+    attributes:
+      label: Blocked by
+      description: 先に完了している必要がある Issue と、その理由。無ければ「なし」
+      value: "なし"
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open Questions

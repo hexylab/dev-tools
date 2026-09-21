@@ -1,0 +1,25 @@
+title = "gitleaks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "pii-email"
+description = "メールアドレス"
+regex = '''[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}'''
+keywords = ["@"]
+
+[[rules.allowlists]]
+description = "ダミー・自動送信用のアドレス"
+regexTarget = "match"
+regexes = ['''(?i)@(?:[a-z0-9-]+\.)*example\.(?:com|org|net)$''', '''(?i)noreply@''', '''(?i)@users\.noreply\.github\.com$''']
+
+[[rules]]
+id = "pii-phone-jp"
+description = "日本の電話番号"
+regex = '''(?:\+81[-\s]?|\b0)[1-9]0?[-\s]?\d{1,4}[-\s]\d{4}\b'''
+
+[[rules.allowlists]]
+description = "UUID の一部が電話番号の形に一致する誤検知（セッション ID など）"
+regexTarget = "line"
+regexes = ['''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}''']

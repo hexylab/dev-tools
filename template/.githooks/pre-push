@@ -1,0 +1,9 @@
+#!/bin/sh
+# main への直接 push を拒否する（変更は PR 経由で入れる）
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "main への直接 push は禁止です。ブランチを切って PR を出してください。" >&2
+    exit 1
+  fi
+done
+exit 0
