@@ -10,7 +10,7 @@ Claude Code と Codex で開発するための環境一式（カスタムイン�
 
 既存のファイルは上書きしない（スキップしたファイルを表示する）。`.claude/skills` などが実ディレクトリとして既にあるときは、リンクに置き換える手順を `要対応:` として表示する。コピー後に `core.hooksPath` を `.githooks` に設定する。続けて、対象リポジトリの `AGENTS.md` と `docs/operations/onboarding.md` の `TODO` を埋める。
 
-必要なもの: `rsync`、[gitleaks](https://github.com/gitleaks/gitleaks)、[GitHub CLI](https://cli.github.com/)、Node.js（`review-pr` のレポート生成）。
+必要なもの: `rsync`、[gitleaks](https://github.com/gitleaks/gitleaks)、[GitHub CLI](https://cli.github.com/)、Node.js（`review-pr` のレポート生成と PR への投稿）。
 
 ## 開発の流れ
 
@@ -18,7 +18,7 @@ Issue・計画・PR を 1 対 1 で対応させる。ユーザが承認するの
 
 1. `/create-issue <やりたいこと>`: 調査、推奨つきの質問、完成イメージの提示、承認後に起票。
 2. `/implement-issue <Issue 番号>`: 調査・計画・実装・検証・PR 作成まで止まらずに進める。
-3. `/review-pr <PR 番号>`: 別セッションでレビューと修正を行い、HTML レポートを作る。
+3. `/review-pr <PR 番号>`: 別セッションでレビューし、採用した指摘を PR の該当行にコメントして修正・resolve し、HTML レポートを作る。
 
 Codex では `$create-issue` のように `$` で起動する。
 

@@ -283,7 +283,7 @@
     <dl class="meta">
       <div><dt>Issue / PR</dt><dd>#{{Issue 番号}} / #{{PR 番号}}</dd></div>
       <div><dt>ブランチ</dt><dd>{{ブランチ名}}</dd></div>
-      <div><dt>対象コミット</dt><dd>{{HEAD の短い SHA}}</dd></div>
+      <div><dt>対象コミット</dt><dd>{{差分を作る時点の HEAD の短い SHA}}</dd></div>
       <div><dt>比較元</dt><dd>{{base ブランチ名}}（{{merge-base の短い SHA}}）</dd></div>
       <div><dt>レビューの周回数</dt><dd>{{n}} 周（上限 3 周）</dd></div>
       <div><dt>生成日時</dt><dd>{{YYYY-MM-DD HH:MM JST}}</dd></div>
@@ -515,7 +515,7 @@
 
   <footer class="footer caption">
     <span>Hexyl Design · version alpha</span>
-    <span>review-pr スキルが生成 · 対象コミット {{HEAD の短い SHA}}</span>
+    <span>review-pr スキルが生成 · 対象コミット {{差分を作る時点の HEAD の短い SHA}}</span>
   </footer>
 </main>
 </body>

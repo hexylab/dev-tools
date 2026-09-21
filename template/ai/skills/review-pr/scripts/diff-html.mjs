@@ -32,15 +32,17 @@ function fail(message) {
   console.error(`diff-html: ${message}`);
   process.exit(1);
 }
-// 表示は変えずに、差分の中のコードがレポートの機械検査（`@import`・`prefers-color-scheme`）に
-// 一致しないよう、@ とハイフンを文字参照にする
+// 表示は変えずに、差分の中のコードがレポートの機械検査（`@import`・`prefers-color-scheme`・
+// 外部 URL の `href="https://…"`）に一致しないよう、@ と " と検査語のハイフンを文字参照にする。
+// ハイフンは検査語だけを崩す。すべて崩すと、生の HTML でパスを読めず grep もできなくなるため
 const esc = (s) =>
   s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
     .replace(/@/g, "&#64;")
-    .replace(/([A-Za-z])-(?=[A-Za-z])/g, "$1&#45;");
+    .replace(/prefers-color-scheme/g, "prefers&#45;color-scheme");
 const row = (cls, no, code) =>
   `<div class="ln${cls ? ` ${cls}` : ""}"><span class="no">${no}</span><span class="code">${code}</span></div>`;
 
@@ -105,9 +107,11 @@ if (!files.length) fail("標準入力に差分がありません");
 const html = files
   .map((f) => {
     const count = notes.filter((n) => n.path === f.path).length;
-    const limit = count ? f.rows.length : maxLines;
-    const shown = f.rows.slice(0, limit);
-    if (f.rows.length > limit) shown.push(row("hunk", "", `… 残り ${f.rows.length - limit} 行は省略（git diff で確認）`));
+    // 名前や権限の変更だけのファイルにはハンクもバイナリの行も無いので、折りたたみが空にならないようにする
+    const rows = f.rows.length ? f.rows : [row("hunk", "", "内容の変更なし（名前や権限の変更のみ）")];
+    const limit = count ? rows.length : maxLines;
+    const shown = rows.slice(0, limit);
+    if (rows.length > limit) shown.push(row("hunk", "", `… 残り ${rows.length - limit} 行は省略（git diff で確認）`));
     return [
       `<details class="fold diff-file">`,
       `<summary><span class="path">${esc(f.path)}</span><span class="tag">${f.tag}</span>${count ? `<span class="tag tag-note">指摘 ${count}</span>` : ""}<span class="diffstat">+${f.add} −${f.del}</span></summary>`,
