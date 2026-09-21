@@ -1,0 +1,17 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    strategy:
+      matrix:
+        # rsync の実装が違う（macOS は openrsync）ので両方で確かめる
+        os: [ubuntu-24.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: ./test.sh

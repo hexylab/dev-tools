@@ -8,7 +8,7 @@ Claude Code と Codex で開発するための環境一式（カスタムイン�
 ./install.sh <対象の git リポジトリのパス>
 ```
 
-既存のファイルは上書きしない（スキップしたファイルを表示する）。コピー後に `core.hooksPath` を `.githooks` に設定する。続けて、対象リポジトリの `AGENTS.md` と `docs/operations/onboarding.md` の `TODO` を埋める。
+既存のファイルは上書きしない（スキップしたファイルを表示する）。`.claude/skills` などが実ディレクトリとして既にあるときは、リンクに置き換える手順を `要対応:` として表示する。コピー後に `core.hooksPath` を `.githooks` に設定する。続けて、対象リポジトリの `AGENTS.md` と `docs/operations/onboarding.md` の `TODO` を埋める。
 
 必要なもの: `rsync`、[gitleaks](https://github.com/gitleaks/gitleaks)、[GitHub CLI](https://cli.github.com/)、Node.js（`review-pr` のレポート生成）。
 
@@ -45,3 +45,7 @@ Codex では `$create-issue` のように `$` で起動する。
 ## エージェントを直すとき
 
 対象リポジトリで `ai/agents/*.md` を直し、`node ai/gen-codex-agents.mjs` を実行して `.codex/agents` も一緒にコミットする（忘れると `pre-commit` が作り直して止める）。Codex は名前に英小文字・数字・アンダースコアしか使えないので、エージェント名にハイフンを使わない。Codex 用は model を指定せず親セッションのモデルを引き継ぎ、読み取り専用のエージェントは `sandbox_mode = "read-only"` になる。
+
+## このリポジトリを直すとき
+
+`./test.sh` を通す。空のリポジトリと、`.claude/skills` が既にあるリポジトリへ `install.sh` を実行し、`template/.codex/agents` が正本と一致することを確かめる。GitHub Actions（`.github/workflows/test.yml`）でも Ubuntu と macOS で実行する。
