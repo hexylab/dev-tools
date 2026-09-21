@@ -1,6 +1,7 @@
 # ai/agents/implementer_lite.md から ai/gen-codex-agents.mjs で生成。直接編集しない。
 name = "implementer_lite"
 description = "変更箇所と手順が指示で明確に指定されている単純な実装、テスト追加、定型的な修正。設計判断を必要としないタスク向け。"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 developer_instructions = """
 あなたは実装専任のエージェントです。指示で指定された変更を正確に適用し、動作を確認してから報告します。

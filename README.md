@@ -44,7 +44,7 @@ Codex では `$create-issue` のように `$` で起動する。
 
 ## エージェントを直すとき
 
-対象リポジトリで `ai/agents/*.md` を直し、`node ai/gen-codex-agents.mjs` を実行して `.codex/agents` も一緒にコミットする（忘れると `pre-commit` が作り直して止める）。Codex は名前に英小文字・数字・アンダースコアしか使えないので、エージェント名にハイフンを使わない。Codex 用は model を指定せず親セッションのモデルを引き継ぎ、読み取り専用のエージェントは `sandbox_mode = "read-only"` になる。
+対象リポジトリで `ai/agents/*.md` を直し、`node ai/gen-codex-agents.mjs` を実行して `.codex/agents` も一緒にコミットする（忘れると `pre-commit` が作り直して止める）。Codex は名前に英小文字・数字・アンダースコアしか使えないので、エージェント名にハイフンを使わない。Codex 用の model は、正本の `model`（`opus` / `sonnet`）を `ai/gen-codex-agents.mjs` の対応表で Codex のモデル（`gpt-6-astra` / `gpt-5.6-sol`）に置き換えて書く。対応が無ければ書かず、親セッションのモデルを引き継ぐ。読み取り専用のエージェントは `sandbox_mode = "read-only"` になる。
 
 ## このリポジトリを直すとき
 

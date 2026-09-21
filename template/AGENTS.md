@@ -36,7 +36,7 @@
 
 # タスクの実行
 
-- タスクはなるべく、Opus / Sonnet クラスのモデルで effort を high 以上にしたサブエージェントに委譲する。名前付きのサブエージェント（正本は `ai/agents/`。Claude Code は `.claude/agents` のシンボリックリンクで読み、Codex 用の `.codex/agents/*.toml` は `node ai/gen-codex-agents.mjs` で生成する）の `researcher`（調査）・`implementer`（設計判断を伴う実装）・`implementer_lite`（手順が明確な実装）・`reviewer`（差分と検証結果の確認）を使い、実行手順が明確な指示を渡す。Codex のサブエージェントは現在のモデルを引き継ぎ、reasoning effort は high 以上にする。最終成果物の品質はメインセッションが責任を持つ。
+- タスクはなるべく、Opus / Sonnet クラスのモデルで effort を high 以上にしたサブエージェントに委譲する。名前付きのサブエージェント（正本は `ai/agents/`。Claude Code は `.claude/agents` のシンボリックリンクで読み、Codex 用の `.codex/agents/*.toml` は `node ai/gen-codex-agents.mjs` で生成する）の `researcher`（調査）・`implementer`（設計判断を伴う実装）・`implementer_lite`（手順が明確な実装）・`reviewer`（差分と検証結果の確認）を使い、実行手順が明確な指示を渡す。Codex のサブエージェントは、Opus に GPT-6 Astra、Sonnet に GPT-5.6 Sol を対応させ（対応表は `ai/gen-codex-agents.mjs`）、reasoning effort は high 以上にする。最終成果物の品質はメインセッションが責任を持つ。
 - 技術スタックや API の仕様は記憶で書かず、公式ドキュメントで最新情報を確認し、参照 URL とバージョンを示す。
 - 不要な機能追加・リファクタ・抽象化はしない。動く最もシンプルな実装を選ぶ。
 - 報告は結論を最初に書き、未検証の事項は「未検証」と明示する。悪い結果も出力ごと報告する。

@@ -5,6 +5,9 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "nod
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// 正本の model（Claude のクラス）に対応させる Codex のモデル。対応が無ければ model を書かず、親セッションのものを引き継ぐ
+const codexModels = { opus: "gpt-6-astra", sonnet: "gpt-5.6-sol" };
+
 const here = dirname(fileURLToPath(import.meta.url));
 const src = join(here, "agents");
 const out = join(here, "..", ".codex", "agents");
@@ -21,7 +24,7 @@ for (const file of readdirSync(src).filter((f) => f.endsWith(".md")).sort()) {
     `# ai/agents/${file} から ai/gen-codex-agents.mjs で生成。直接編集しない。`,
     `name = ${JSON.stringify(meta.name)}`,
     `description = ${JSON.stringify(meta.description)}`,
-    // model は書かず、親セッションのものを引き継ぐ
+    ...(codexModels[meta.model] ? [`model = ${JSON.stringify(codexModels[meta.model])}`] : []),
     `model_reasoning_effort = ${JSON.stringify(meta.effort ?? "high")}`,
   ];
   // Edit を禁じているエージェントは読み取り専用

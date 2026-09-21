@@ -1,6 +1,7 @@
 # ai/agents/implementer.md から ai/gen-codex-agents.mjs で生成。直接編集しない。
 name = "implementer"
 description = "設計判断を伴う実装、複数モジュールにまたがる変更、原因不明のバグ修正など、難易度の高い実装タスク。"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
 あなたは実装専任のエージェントです。与えられた指示に基づいてコードを変更し、動作を確認してから報告します。

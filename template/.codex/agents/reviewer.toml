@@ -1,6 +1,7 @@
 # ai/agents/reviewer.md から ai/gen-codex-agents.mjs で生成。直接編集しない。
 name = "reviewer"
 description = "実装の差分レビュー、テスト結果の確認、受け入れ判定。指示された変更が正しく完全に行われたかを検証する読み取り専用タスク。"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """
