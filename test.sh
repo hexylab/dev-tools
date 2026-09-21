@@ -39,7 +39,15 @@ check_installed "$tmp/existing" "既存の .claude/skills"
 grep -q "要対応: .claude/skills" "$tmp/err" || fail "既存の .claude/skills: 対応が案内されない"
 [ -L "$tmp/existing/.claude/agents" ] || fail "既存の .claude/skills: 他のリンクが張られていない"
 
-# 4. template の .codex/agents が ai/agents/ から生成したものと一致する
+# 4. git worktree（.git がファイル）にも導入できる
+git -C "$tmp/empty" -c user.name=test -c user.email=test@example.com commit -q --no-verify --allow-empty -m init
+git -C "$tmp/empty" worktree add -q "$tmp/wt" -b wt
+[ -f "$tmp/wt/.git" ] || fail "worktree: .git がファイルになっていない（テストの前提が崩れている）"
+"$root/install.sh" "$tmp/wt" >/dev/null || fail "worktree: 失敗した"
+check_installed "$tmp/wt" "worktree"
+[ -L "$tmp/wt/.claude/skills" ] || fail "worktree: リンクが張られていない"
+
+# 5. template の .codex/agents が ai/agents/ から生成したものと一致する
 node "$root/template/ai/gen-codex-agents.mjs"
 if ! git -C "$root" diff --quiet -- template/.codex/agents || [ -n "$(git -C "$root" ls-files --others --exclude-standard template/.codex/agents)" ]; then
   fail "template/.codex/agents が古い。生成し直した内容をコミットする"
